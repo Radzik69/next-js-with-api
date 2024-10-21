@@ -1,92 +1,135 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { CircleGauge, MapPinHouse, SunSnow, Thermometer, ThermometerSnowflake, ThermometerSun, Wind } from "lucide-react"
-import { useEffect, useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Calendar,
+	CircleGauge,
+	MapPinHouse,
+	Moon,
+	SunSnow,
+	Thermometer,
+	Wind,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 
+export default function WeatherForecast() {
+	const [dataDzis, setDataDzis] = useState(null);
+	const [dataPrzewidywanie, setDataPrzewidywanie] = useState(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState(false);
 
-export default function WeaherForecast(){
+	useEffect(() => {
+		const getData = async () => {
+			try {
+				const response = await fetch(
+					"https://api.openweathermap.org/data/2.5/weather?lat=52.237049&lon=21.017532&appid=07bf0aa66592a5f05be1020a41fe073a&units=metric"
+				);
+				const dataJson = await response.json();
+				setDataDzis(dataJson);
+				console.log(dataJson);
+			} catch (error) {
+				setError(true);
+				console.log(error);
+			} finally {
+				setLoading(false);
+			}
+		};
+		getData();
+	}, []);
 
-    const[dataDzis,setDataDzis] = useState(null)
-    const[dataPrzewidywanie,setDataPrzewidywanie] = useState(null)
-    const[loading,setLoading] = useState(true)
-    const[error,setError] = useState(false)
+	useEffect(() => {
+		const getData = async () => {
+			try {
+				const response = await fetch(
+					"https://api.openweathermap.org/data/2.5/forecast?lat=52.237049&lon=21.017532&appid=07bf0aa66592a5f05be1020a41fe073a&units=metric"
+				);
+				const dataJson = await response.json();
+				setDataPrzewidywanie(dataJson);
+			} catch (error) {
+				setError(true);
+				console.log(error);
+			} finally {
+				setLoading(false);
+			}
+		};
+		getData();
+	}, []);
 
-    useEffect(()=>{
-        const getData = async () =>{
-            try{
-                const response = await fetch("https://api.openweathermap.org/data/2.5/weather?lat=52.237049&lon=21.017532&appid=07bf0aa66592a5f05be1020a41fe073a&units=metric")
-                const dataJson = await response.json()
-                setDataDzis(dataJson)
-                console.log(dataJson)
-            }
-            catch(error){
-                setError(true)
-                console.log(error)
-            }
-            finally{
-                setLoading(false)
-            }
-        }
-        getData()
-    },[])
+	function getNightWeather(data) {
+		// Przechodzimy po prognozie i szukamy temperatury na noc (około północy)
+		const nightWeather = data.list.find((item) =>
+			item.dt_txt.includes("00:00:00")
+		);
+		return `${nightWeather.main.temp}℃`;
+	}
 
-    useEffect(()=>{
-        const getData = async () =>{
-            try{
-                const response = await fetch("https://api.openweathermap.org/data/2.5/forecast?lat=52.237049&lon=21.017532&cnt=4&appid=07bf0aa66592a5f05be1020a41fe073a&units=metric")
-                const dataJson = await response.json()
-                setDataPrzewidywanie(dataJson)
-                console.log(dataJson)
-            }
-            catch(error){
-                setError(true)
-                console.log(error)
-            }
-            finally{
-                setLoading(false)
-            }
-        }
-        getData()
-    },[])
+	if (loading) {
+		return <p>Ładowanie...</p>;
+	}
 
-    return(
-        <div>
-            <div>
-            <Card className="flex flex-col justify-center items-center">
-                <CardHeader>
-                    <CardTitle><Thermometer />Temperatura: {dataDzis.main.temp}℃</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    Data: 18.10.2024
-                    <SunSnow/>{dataDzis.weather[0].description}
-                    <Wind/>Prędkosć Wiatru: {dataDzis.wind.speed}km/h
-                    <MapPinHouse/>Miejsce: {dataDzis.name}           
-                </CardContent>
-            </Card>
-            </div>
+	if (error) {
+		return <p>Błąd wczytywania danych pogodowych.</p>;
+	}
 
-            <div className="flex flex-wrap justify-center gap-4">
-            {
-                dataPrzewidywanie && dataPrzewidywanie.list.map((weather,idx)=>
-                <>
-                    <Card key={idx}>
-                        <CardHeader>
-                            <CardTitle><Thermometer/>Za {idx+1} dni : {weather.main.temp}℃</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                        <CircleGauge />Ciśnienie: {weather.main.pressure}
-                            <br></br>
-                            <ThermometerSun />Temperatura Maksymalna: {weather.main.temp_max}℃
-                            <br></br>
-                            <ThermometerSnowflake />Temperatura Minimalna: {weather.main.temp_min}℃  
+	return (
+		<div>
+			<div className="flex justify-center mb-8">
+				<Card>
+					<CardHeader>
+						<CardTitle className="flex items-center justify-center gap-2">
+							<Thermometer />
+							Temperatura:
+							{dataDzis.main.temp}℃
+						</CardTitle>
+					</CardHeader>
+					<CardContent className="text-center space-y-4">
+						Data: {new Date().toISOString().slice(0, 10)}
+						<div className="text-lg flex items-center justify-center gap-2">
+							<SunSnow />
+							Opis Pogody: {dataDzis.weather[0].description}
+						</div>
+						<div className="text-lg flex items-center justify-center gap-2">
+							<Wind />
+							Prędkość Wiatru: {dataDzis.wind.speed} km/h
+						</div>
+						<div className="text-lg flex items-center justify-center gap-2">
+							<MapPinHouse />
+							Miejsce: {dataDzis.name}
+						</div>
+					</CardContent>
+				</Card>
+			</div>
 
-                        </CardContent>
-                    </Card>
-                </>
-                )
-            }
-            </div>
-        </div>
-    )
+			<div className="flex flex-wrap justify-center gap-4">
+				{dataPrzewidywanie &&
+					dataPrzewidywanie.list.map(
+						(weather, idx) =>
+							(idx == 0 || idx % 8 == 0) && (
+								<Card key={idx}>
+									<CardHeader>
+										<CardTitle className="text-xl flex items-center justify-center gap-2">
+											<Thermometer />
+											Temperatura: {weather.main.temp}℃
+										</CardTitle>
+									</CardHeader>
+									<CardContent className="space-y-4 text-center">
+										<div className="text-lg flex items-center justify-center gap-2">
+											<Calendar />
+											Data: {weather.dt_txt.slice(0, 10)}
+										</div>
+										<div className="text-lg flex items-center justify-center gap-2">
+											<Moon />
+											Temperatura Nocą: {getNightWeather(dataPrzewidywanie)}
+										</div>
+										<div className="text-lg flex items-center justify-center gap-2">
+											<CircleGauge />
+											Ciśnienie: {weather.main.pressure} hPa
+										</div>
+									</CardContent>
+								</Card>
+							)
+					)}
+			</div>
+		</div>
+	);
 }
