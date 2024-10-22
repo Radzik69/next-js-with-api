@@ -56,7 +56,6 @@ export default function WeatherForecast() {
 	}, []);
 
 	function getNightWeather(data) {
-		// Przechodzimy po prognozie i szukamy temperatury na noc (około północy)
 		const nightWeather = data.list.find((item) =>
 			item.dt_txt.includes("00:00:00")
 		);
@@ -78,8 +77,7 @@ export default function WeatherForecast() {
 					<CardHeader>
 						<CardTitle className="flex items-center justify-center gap-2">
 							<Thermometer />
-							Temperatura:
-							{dataDzis.main.temp}℃
+							<p className="font-bold">{dataDzis.main.temp}℃</p>
 						</CardTitle>
 					</CardHeader>
 					<CardContent className="text-center space-y-4">
@@ -104,12 +102,12 @@ export default function WeatherForecast() {
 				{dataPrzewidywanie &&
 					dataPrzewidywanie.list.map(
 						(weather, idx) =>
-							(idx == 0 || idx % 8 == 0) && (
+							(idx % 8 == 0) && (
 								<Card key={idx}>
 									<CardHeader>
 										<CardTitle className="text-xl flex items-center justify-center gap-2">
 											<Thermometer />
-											Temperatura: {weather.main.temp}℃
+											<p className="font-bold">{weather.main.temp}℃</p>
 										</CardTitle>
 									</CardHeader>
 									<CardContent className="space-y-4 text-center">
