@@ -26,7 +26,6 @@ export default function WeatherForecast() {
 				);
 				const dataJson = await response.json();
 				setDataDzis(dataJson);
-				console.log(dataJson);
 			} catch (error) {
 				setError(true);
 				console.log(error);
@@ -41,10 +40,11 @@ export default function WeatherForecast() {
 		const getData = async () => {
 			try {
 				const response = await fetch(
-					"https://api.openweathermap.org/data/2.5/forecast?lat=52.237049&lon=21.017532&appid=07bf0aa66592a5f05be1020a41fe073a&units=metric"
+					"https://api.openweathermap.org/data/2.5/forecast?lat=52.237049&lon=21.017532&lang=pl&appid=07bf0aa66592a5f05be1020a41fe073a&units=metric"
 				);
 				const dataJson = await response.json();
 				setDataPrzewidywanie(dataJson);
+				console.log(dataJson);
 			} catch (error) {
 				setError(true);
 				console.log(error);
@@ -55,12 +55,17 @@ export default function WeatherForecast() {
 		getData();
 	}, []);
 
-	function getNightWeather(data) {
-		// Przechodzimy po prognozie i szukamy temperatury na noc (około północy)
-		const nightWeather = data.list.find((item) =>
+	function getNightWeather(data, date) {
+		const dateStr = date;
+		const dailyWeather = data.list.filter((item) =>
+			item.dt_txt.includes(dateStr)
+		);
+		const nightWeather = dailyWeather.find((item) =>
 			item.dt_txt.includes("00:00:00")
 		);
-		return `${nightWeather.main.temp}℃`;
+		if (nightWeather && nightWeather.main) {
+			return `${nightWeather.main.temp}℃`;
+		}
 	}
 
 	if (loading) {
@@ -104,7 +109,8 @@ export default function WeatherForecast() {
 				{dataPrzewidywanie &&
 					dataPrzewidywanie.list.map(
 						(weather, idx) =>
-							(idx == 0 || idx % 8 == 0) && (
+							idx % 8 === 0 &&
+							idx !== 0 && (
 								<Card key={idx}>
 									<CardHeader>
 										<CardTitle className="text-xl flex items-center justify-center gap-2">
@@ -119,7 +125,11 @@ export default function WeatherForecast() {
 										</div>
 										<div className="text-lg flex items-center justify-center gap-2">
 											<Moon />
-											Temperatura Nocą: {getNightWeather(dataPrzewidywanie)}
+											Temperatura Nocą:
+											{getNightWeather(
+												dataPrzewidywanie,
+												weather.dt_txt.slice(0, 10)
+											)}
 										</div>
 										<div className="text-lg flex items-center justify-center gap-2">
 											<CircleGauge />
